@@ -1,28 +1,208 @@
-# macOS
-.DS_Store
+cd /Users/alpblkba/Documents/GitHub/iot-lab
 
-# build outputs
-build/
-cmake-build-*/
+cat > .gitignore <<'EOF'
+# operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# editor and IDE files
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.temp
+
+# vscode embedded / cortex-debug artifacts
+.vscode/.browse.c_cpp.db*
+.vscode/ipch/
+.vscode/launch.json
+.vscode/tasks.json
+
+# eclipse / stm32cubeide metadata
+.metadata/
+.settings/
+.project
+.cproject
+.mxproject
+*.launch
+
+# stm32cubeide generated debug/release/build folders
 Debug/
 Release/
+build/
+Build/
+BUILD/
+cmake-build-*/
+out/
+bin/
+obj/
 
-# STM32 / generated temporary files
+# task-local build folders
+**/Debug/
+**/Release/
+**/build/
+**/Build/
+**/BUILD/
+**/cmake-build-*/
+**/out/
+**/bin/
+**/obj/
+
+# compiled object files
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# embedded firmware outputs
 *.elf
 *.bin
 *.hex
 *.map
 *.list
+*.lst
 *.su
-*.o
+*.siz
+*.srec
+*.eep
+*.lss
+*.sym
+
+# dependency and intermediate files
 *.d
-*.a
+*.dep
+*.gcda
+*.gcno
+*.gcov
+*.stackdump
 
-# VS Code local settings
-.vscode/ipch/
-.vscode/.browse.c_cpp.db*
-.vscode/settings.json
+# arm gcc / make intermediate files
+*.axf
+*.out
+*.dis
+*.dump
 
-# archives
+# generated linker/build logs
+*.log
+*.trace
+*.ini
+*.stat
+
+# cmake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# exception: keep source Makefiles if you intentionally use them
+!**/Makefile
+
+# python caches / scripts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# jupyter
+.ipynb_checkpoints/
+
+# mac serial / terminal junk
+*.session
+*.terminal
+
+# stm32 / cube generated backup files
+*.ioc.bak
+*.bak_*
+*_backup.*
+*_old.*
+*_copy.*
+
+# stm32 programmer / debug server
+ST-LINK_gdbserver_log.txt
+st-link_gdbserver_log.txt
+*.stldr
+
+# openocd / gdb
+.gdb_history
+openocd.log
+
+# keil
+*.uvguix.*
+*.uvoptx
+*.uvprojx
+Listings/
+Objects/
+
+# iar
+*.ewp
+*.eww
+*.ewd
+settings/
+Debug/
+Release/
+
+# temporary archives
 *.zip
+*.tar
 *.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# generated docs
+html/
+latex/
+doxygen_warnings.log
+
+# local notes that should not be submitted unless intentional
+scratch/
+tmp/
+temp/
+
+# copied vendor package clutter that is usually unnecessary unless the lab explicitly wants full cube projects
+**/.settings/
+**/.metadata/
+
+# stm32cube generated html/pdf/doc cache
+Documentation/
+Middlewares/ST/STM32_USB_Device_Library/Class/*/Doc/
+Drivers/CMSIS/docs/
+
+# keep important source files
+!Src/
+!Inc/
+!Drivers/
+!Middlewares/
+!*.c
+!*.h
+!*.s
+!*.ld
+!*.ioc
+!README.md
+!TODO.txt
+EOF
