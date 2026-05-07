@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# build outputs
+build/
+cmake-build-*/
+Debug/
+Release/
+
+# STM32 / generated temporary files
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+*.su
+*.o
+*.d
+*.a
+
+# VS Code local settings
+.vscode/ipch/
+.vscode/.browse.c_cpp.db*
+.vscode/settings.json
+
+# archives
+*.zip
+*.tar.gz
