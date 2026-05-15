@@ -125,10 +125,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(LED7_GPIO_PORT, LED7_PIN);
     /* Insert delay 100 ms */
-    HAL_Delay(100);
+    HAL_Delay(500);
     HAL_GPIO_TogglePin(LED6_GPIO_PORT, LED6_PIN);
     /* Insert delay 100 ms */
-    HAL_Delay(100);
+    HAL_Delay(500);
 
   }
   /* USER CODE END 3 */
