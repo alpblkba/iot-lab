@@ -1,0 +1,80 @@
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:  __IO uint32_t AHB2ENR1;      /*!< AHB2 Peripherals Clock Enable Register 1                                 Address offset: 0x8C */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_BASE_NS              (AHB3PERIPH_BASE_NS + 0x0C00UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_BASE_S              (AHB3PERIPH_BASE_S + 0x0C00UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_NS                 ((RCC_TypeDef *) RCC_BASE_NS)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_S                  ((RCC_TypeDef *) RCC_BASE_S)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_BASE                       RCC_BASE_S
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_BASE                       RCC_BASE_NS
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:/********************  Bit definition for RCC_AHB2ENR1 register  **************/
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOAEN_Pos            (0UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOAEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOAEN_Pos)     /*!< 0x00000001 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOAEN                RCC_AHB2ENR1_GPIOAEN_Msk                /*!< IO port A Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOBEN_Pos            (1UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOBEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOBEN_Pos)     /*!< 0x00000002 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOBEN                RCC_AHB2ENR1_GPIOBEN_Msk                /*!< IO port B Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOCEN_Pos            (2UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOCEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOCEN_Pos)     /*!< 0x00000004 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOCEN                RCC_AHB2ENR1_GPIOCEN_Msk                /*!< IO port C Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIODEN_Pos            (3UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIODEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIODEN_Pos)     /*!< 0x00000008 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIODEN                RCC_AHB2ENR1_GPIODEN_Msk                /*!< IO port D Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOEEN_Pos            (4UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOEEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOEEN_Pos)     /*!< 0x00000010 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOEEN                RCC_AHB2ENR1_GPIOEEN_Msk                /*!< IO port E Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOFEN_Pos            (5UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOFEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOFEN_Pos)     /*!< 0x00000020 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOFEN                RCC_AHB2ENR1_GPIOFEN_Msk                /*!< IO port F Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOGEN_Pos            (6UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOGEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOGEN_Pos)     /*!< 0x00000040 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOGEN                RCC_AHB2ENR1_GPIOGEN_Msk                /*!< IO port G Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOHEN_Pos            (7UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOHEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOHEN_Pos)     /*!< 0x00000080 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOHEN                RCC_AHB2ENR1_GPIOHEN_Msk                /*!< IO port H Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOIEN_Pos            (8UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOIEN_Msk            (0x1UL << RCC_AHB2ENR1_GPIOIEN_Pos)     /*!< 0x00000100 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_GPIOIEN                RCC_AHB2ENR1_GPIOIEN_Msk                /*!< IO port I Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_ADC12EN_Pos             (10UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_ADC12EN_Msk             (0x1UL << RCC_AHB2ENR1_ADC12EN_Pos)    /*!< 0x00000400 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_ADC12EN                 RCC_AHB2ENR1_ADC12EN_Msk               /*!< ADC1 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_DCMI_PSSIEN_Pos        (12UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_DCMI_PSSIEN_Msk        (0x1UL << RCC_AHB2ENR1_DCMI_PSSIEN_Pos) /*!< 0x00001000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_DCMI_PSSIEN            RCC_AHB2ENR1_DCMI_PSSIEN_Msk            /*!< DCMI and PSSI Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTGEN_Pos              (14UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTGEN_Msk              (0x1UL << RCC_AHB2ENR1_OTGEN_Pos)       /*!< 0x00004000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTGEN                  RCC_AHB2ENR1_OTGEN_Msk                  /*!< OTG Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_AESEN_Pos              (16UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_AESEN_Msk              (0x1UL << RCC_AHB2ENR1_AESEN_Pos)       /*!< 0x00010000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_AESEN                  RCC_AHB2ENR1_AESEN_Msk                  /*!< AES Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_HASHEN_Pos             (17UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_HASHEN_Msk             (0x1UL << RCC_AHB2ENR1_HASHEN_Pos)      /*!< 0x00020000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_HASHEN                 RCC_AHB2ENR1_HASHEN_Msk                 /*!< HASH Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_RNGEN_Pos              (18UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_RNGEN_Msk              (0x1UL << RCC_AHB2ENR1_RNGEN_Pos)       /*!< 0x00040000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_RNGEN                  RCC_AHB2ENR1_RNGEN_Msk                  /*!< RNG Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_PKAEN_Pos              (19UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_PKAEN_Msk              (0x1UL << RCC_AHB2ENR1_PKAEN_Pos)       /*!< 0x00080000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_PKAEN                  RCC_AHB2ENR1_PKAEN_Msk                  /*!< PKA Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SAESEN_Pos             (20UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SAESEN_Msk             (0x1UL << RCC_AHB2ENR1_SAESEN_Pos)      /*!< 0x00100000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SAESEN                 RCC_AHB2ENR1_SAESEN_Msk                 /*!< SAES Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OCTOSPIMEN_Pos         (21UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OCTOSPIMEN_Msk         (0x1UL << RCC_AHB2ENR1_OCTOSPIMEN_Pos)  /*!< 0x00200000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OCTOSPIMEN             RCC_AHB2ENR1_OCTOSPIMEN_Msk             /*!< OCTOSPIM Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC1EN_Pos          (23UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC1EN_Msk          (0x1UL << RCC_AHB2ENR1_OTFDEC1EN_Pos)   /*!< 0x00800000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC1EN              RCC_AHB2ENR1_OTFDEC1EN_Msk              /*!< OTFDEC1 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC2EN_Pos          (24UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC2EN_Msk          (0x1UL << RCC_AHB2ENR1_OTFDEC2EN_Pos)   /*!< 0x01000000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_OTFDEC2EN              RCC_AHB2ENR1_OTFDEC2EN_Msk              /*!< OTFDEC2 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC1EN_Pos           (27UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC1EN_Msk           (0x1UL << RCC_AHB2ENR1_SDMMC1EN_Pos)    /*!< 0x08000000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC1EN               RCC_AHB2ENR1_SDMMC1EN_Msk               /*!< SDMMC1 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC2EN_Pos           (28UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC2EN_Msk           (0x1UL << RCC_AHB2ENR1_SDMMC2EN_Pos)    /*!< 0x10000000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SDMMC2EN               RCC_AHB2ENR1_SDMMC2EN_Msk               /*!< SDMMC2 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM2EN_Pos            (30UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM2EN_Msk            (0x1UL << RCC_AHB2ENR1_SRAM2EN_Pos)     /*!< 0x40000000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM2EN                RCC_AHB2ENR1_SRAM2EN_Msk                /*!< SRAM2 Clock Enable */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM3EN_Pos            (31UL)
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM3EN_Msk            (0x1UL << RCC_AHB2ENR1_SRAM3EN_Pos)     /*!< 0x80000000 */
+./Device/ST/STM32U5xx/Include/stm32u585xx.h:#define RCC_AHB2ENR1_SRAM3EN                RCC_AHB2ENR1_SRAM3EN_Msk                /*!< SRAM3 Clock Enable */

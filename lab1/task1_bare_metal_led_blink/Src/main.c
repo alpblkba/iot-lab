@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,6 +33,64 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// offsets are in unsigned long
+#define GREEN_LED_PIN                 7U
+
+// non-secure peripheral region starts at 0x40000000
+#define LAB_PERIPH_BASE_NS        0x40000000UL
+
+// AHB2 peripheral region for non-secure starts from 0x02
+#define LAB_AHB2PERIPH_OFFSET_NS  0x02020000UL
+
+// GPIO offset in unsigned-long
+#define LAB_GPIOH_OFFSET          0x01C00UL
+
+// 0x42021C00UL
+#define LAB_GPIOH_BASE            (LAB_PERIPH_BASE_NS + LAB_AHB2PERIPH_OFFSET_NS + LAB_GPIOH_OFFSET)
+#define GPIOH_MODER                (*(volatile uint32_t *)(LAB_GPIOH_BASE + 0x00UL))
+#define GPIOH_BSRR                 (*(volatile uint32_t *)(LAB_GPIOH_BASE + 0x18UL))
+
+/*
+1 KB allocation for GPIOH, therefore:
+GPIOH register range = 0x42021C00 - 0x42021FFF
+
+00 : input
+01 : output
+10 : alternate function
+11 : analog
+*/
+
+#define GREEN_LED_MODE_SHIFT       (GREEN_LED_PIN * 2U)  // bit 14-15 should be modified
+#define GREEN_LED_MODE_MASK        (3U << GREEN_LED_MODE_SHIFT) // write 11 on bit 14-15
+#define GREEN_LED_OUTPUT_MODE      (1U << GREEN_LED_MODE_SHIFT) // write 01 on bit 14-15
+
+// lower 16 bits for set, upper 16 bits for reset
+#define GREEN_LED_SET_MASK         (1U << GREEN_LED_PIN)  // write to 7
+#define GREEN_LED_RESET_MASK       (1U << (GREEN_LED_PIN + 16U)) // write to 7 + 16
+
+/*
+RCC_BASE_NS
+// RCC lives under AHB3
+// RCC, also controls clocks on the peripherals of AHB2.
+
+= AHB3PERIPH_BASE_NS + 0x0C00
+= PERIPH_BASE_NS + 0x06020000 + 0x0C00
+= 0x40000000 + 0x06020000 + 0x0C00
+= 0x46020C00
+*/
+#define LAB_AHB3PERIPH_BASE_NS    (LAB_PERIPH_BASE_NS + 0x06020000UL)
+#define LAB_RCC_BASE_NS           (LAB_AHB3PERIPH_BASE_NS + 0x0C00UL)
+
+// GPIOHEN is bit 7 in RCC_AHB2ENR1.
+// 1U = 0000 0000 0000 0000 0000 0000 0000 0001
+// 1U << 7U = 0000 0000 0000 0000 0000 0000 1000 0000
+// 0x00000080, 128
+// 1U << 7U = 0x00000080
+#define LAB_RCC_AHB2ENR1_GPIOHEN  (1U << 7U)
+
+/*!< AHB2 Peripherals Clock Enable Register 1                                
+addr offset: 0x8C */
+#define RCC_AHB2ENR1               (*(volatile uint32_t *)(RCC_BASE_NS + 0x8CUL))
 
 /* USER CODE END PD */
 
@@ -44,7 +102,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static GPIO_InitTypeDef  GPIO_InitStruct;
 
 /* USER CODE END PV */
 
@@ -52,8 +109,11 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 void SystemClock_Config(void);
 static void SystemPower_Config(void);
 static void MX_ICACHE_Init(void);
-/* USER CODE BEGIN PFP */
 
+/* USER CODE BEGIN PFP */
+static void Enable_GPIOH_Clock(void);
+static void Configure_Green_Led_Output(void);
+static void Delay(volatile uint32_t count);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,19 +161,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
    /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
-  LED7_GPIO_CLK_ENABLE();
-  LED6_GPIO_CLK_ENABLE();
-
-  /* -2- Configure IO in output push-pull mode to drive external LEDs */
-  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull  = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-
-  GPIO_InitStruct.Pin = LED7_PIN;
-  HAL_GPIO_Init(LED7_GPIO_PORT, &GPIO_InitStruct);
-  GPIO_InitStruct.Pin = LED6_PIN;
-  HAL_GPIO_Init(LED6_GPIO_PORT, &GPIO_InitStruct);
-
+  Enable_GPIOH_Clock();
+  Configure_Green_Led_Output();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,13 +171,11 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LED7_GPIO_PORT, LED7_PIN);
-    /* Insert delay 100 ms */
-    HAL_Delay(100);
-    HAL_GPIO_TogglePin(LED6_GPIO_PORT, LED6_PIN);
-    /* Insert delay 100 ms */
-    HAL_Delay(100);
+    GPIOH_BSRR = GREEN_LED_SET_MASK;
+    Delay(200000);
+
+    GPIOH_BSRR = GREEN_LED_RESET_MASK;
+    Delay(200000);
 
   }
   /* USER CODE END 3 */
@@ -244,6 +291,22 @@ static void MX_ICACHE_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static void Enable_GPIOH_Clock(void) {
+  // Enable GPIOH peripheral clock through RCC.
+  RCC_AHB2ENR1 |= LAB_RCC_AHB2ENR1_GPIOHEN;
+}
+
+static void Configure_Green_Led_Output(void) {
+  // PH7 does output mode
+  GPIOH_MODER &= ~GREEN_LED_MODE_MASK;
+  GPIOH_MODER |= GREEN_LED_OUTPUT_MODE;
+}
+
+static void Delay(volatile uint32_t count) {
+  while (count--) {
+    __NOP();
+  }
+}
 /* USER CODE END 4 */
 
 /**
