@@ -24,7 +24,6 @@
 #include <string.h>
 #include "b_u585i_iot02a_motion_sensors.h"
 #include "ism330dhcx.h"
-#include <string.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -70,10 +69,10 @@ static void uart_print(const char *s) {
 
 static void motion_error(const char *msg) {
   uart_print(msg);
-  uart_print("\\r\\n");
+  uart_print("\r\n");
 
   while (1) {
-    uart_print("motion sensor init failed\\r\\n");
+    uart_print("motion sensor init failed\r\n");
     HAL_Delay(1000);
   }
 }
