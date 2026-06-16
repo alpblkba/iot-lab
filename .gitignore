@@ -166,3 +166,6 @@ settings/
 .settings/
 **/.metadata/
 **/.settings/
+
+# macOS
+.DS_Store
