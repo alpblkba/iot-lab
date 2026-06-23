@@ -21,7 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
+#include <string.h>
 
+#include "iot_kernel.h"
+#include "iot_test_data.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,7 +65,8 @@ DMA_HandleTypeDef handle_GPDMA1_Channel0;
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
-
+static uint8_t y_axpy[N_AXPY];
+static int32_t y_conv[YLEN_CONV];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,7 +91,97 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void uart_print(const char *s) {
+    HAL_UART_Transmit(&huart1, (uint8_t *)s, strlen(s), HAL_MAX_DELAY);
+}
 
+static int check_u8_array(const uint8_t *actual, const uint8_t *expected, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        if (actual[i] != expected[i]) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static int check_i32_array(const int32_t *actual, const int32_t *expected, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        if (actual[i] != expected[i]) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static void run_kernel_self_test(void) {
+    int all_pass = 1;
+
+    uart_print("\r\nIoT kernel self-test\r\n");
+
+    memcpy(y_axpy, Y0_AXPY, sizeof(y_axpy));
+    axpy_u8(N_AXPY, A_AXPY, X_AXPY, y_axpy);
+
+    if (check_u8_array(y_axpy, Y_AXPY_GOLD, N_AXPY) != 0) {
+        uart_print("AXPY baseline: PASS\r\n");
+    } else {
+        uart_print("AXPY baseline: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    memcpy(y_axpy, Y0_AXPY, sizeof(y_axpy));
+    axpy_u8_unrolled(N_AXPY, A_AXPY, X_AXPY, y_axpy);
+
+    if (check_u8_array(y_axpy, Y_AXPY_GOLD, N_AXPY) != 0) {
+        uart_print("AXPY unrolled: PASS\r\n");
+    } else {
+        uart_print("AXPY unrolled: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    conv1d_i16_valid(X_CONV, XLEN_CONV, H_CONV, KLEN_CONV, y_conv);
+
+    if (check_i32_array(y_conv, Y_CONV_GOLD, YLEN_CONV) != 0) {
+        uart_print("CONV baseline: PASS\r\n");
+    } else {
+        uart_print("CONV baseline: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    conv1d_i16_valid_opt(X_CONV, XLEN_CONV, H_CONV, KLEN_CONV, y_conv);
+
+    if (check_i32_array(y_conv, Y_CONV_GOLD, YLEN_CONV) != 0) {
+        uart_print("CONV opt: PASS\r\n");
+    } else {
+        uart_print("CONV opt: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    uint32_t sad_baseline = sad_u8(N_SAD, A_SAD, B_SAD);
+
+    if (sad_baseline == SAD_GOLD) {
+        uart_print("SAD baseline: PASS\r\n");
+    } else {
+        uart_print("SAD baseline: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    uint32_t sad_opt = sad_u8_opt(N_SAD, A_SAD, B_SAD);
+
+    if (sad_opt == SAD_GOLD) {
+        uart_print("SAD opt: PASS\r\n");
+    } else {
+        uart_print("SAD opt: FAIL\r\n");
+        all_pass = 0;
+    }
+
+    if (all_pass != 0) {
+        uart_print("Self-test result: PASS\r\n");
+    } else {
+        uart_print("Self-test result: FAIL\r\n");
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -134,7 +229,7 @@ int main(void)
   MX_UCPD1_Init();
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
-
+  run_kernel_self_test();
   /* USER CODE END 2 */
 
   /* Infinite loop */
