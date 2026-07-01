@@ -26,6 +26,8 @@
 
 #include "iot_kernel.h"
 #include "iot_test_data.h"
+#include "b_u585i_iot02a_audio.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,6 +115,175 @@ static int check_i32_array(const int32_t *actual, const int32_t *expected, size_
     }
 
     return 1;
+}
+
+
+#define AUDIO_BUFFER_SAMPLES 512U
+
+static int16_t audio_buffer[AUDIO_BUFFER_SAMPLES];
+static volatile uint8_t audio_half_ready = 0;
+static volatile uint8_t audio_full_ready = 0;
+static volatile uint8_t audio_error_seen = 0;
+volatile uint32_t audio_irq_count = 0;
+
+
+void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance)
+{
+    (void)Instance;
+    audio_half_ready = 1;
+}
+
+void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance)
+{
+    (void)Instance;
+    audio_full_ready = 1;
+}
+
+void BSP_AUDIO_IN_Error_CallBack(uint32_t Instance)
+{
+    (void)Instance;
+    audio_error_seen = 1;
+}
+
+static void audio_report_block(const int16_t *samples, uint32_t count, const char *tag)
+{
+    int16_t min_sample = samples[0];
+    int16_t max_sample = samples[0];
+    uint32_t avg_abs = 0;
+
+    for (uint32_t i = 0; i < count; i++) {
+        int16_t v = samples[i];
+
+        if (v < min_sample) {
+            min_sample = v;
+        }
+
+        if (v > max_sample) {
+            max_sample = v;
+        }
+
+        avg_abs += (v < 0) ? (uint32_t)(-v) : (uint32_t)v;
+    }
+
+    avg_abs /= count;
+
+    char formatted[96];
+    snprintf(formatted,
+             sizeof(formatted),
+             "MIC %s min=%d max=%d avg_abs=%lu\r\n",
+             tag,
+             min_sample,
+             max_sample,
+             (unsigned long)avg_abs);
+
+    uart_print(formatted);
+}
+
+static void run_microphone_smoke_test(void)
+{
+    BSP_AUDIO_Init_t audio_init = {0};
+    uint32_t reports = 0;
+
+    audio_init.SampleRate = AUDIO_FREQUENCY_16K;
+    audio_init.BitsPerSample = AUDIO_RESOLUTION_16B;
+    audio_init.ChannelsNbr = 1U;
+    audio_init.Volume = 100U;
+
+    const uint32_t devices[] = {
+        AUDIO_IN_DEVICE_DIGITAL_MIC1,
+        AUDIO_IN_DEVICE_DIGITAL_MIC2,
+        AUDIO_IN_DEVICE_DIGITAL_MIC,
+    };
+
+    const char *device_names[] = {
+        "DIGITAL_MIC1",
+        "DIGITAL_MIC2",
+        "DIGITAL_MIC",
+    };
+
+    int32_t audio_status = BSP_ERROR_PERIPH_FAILURE;
+    uint32_t selected_device = 0U;
+
+    for (uint32_t i = 0; i < 3U; ++i) {
+        char line[80];
+
+        audio_init.Device = devices[i];
+
+        if (devices[i] == AUDIO_IN_DEVICE_DIGITAL_MIC) {
+            audio_init.ChannelsNbr = 2U;
+        } else {
+            audio_init.ChannelsNbr = 1U;
+        }
+
+        snprintf(line, sizeof(line), "MIC init try: %s\r\n", device_names[i]);
+        uart_print(line);
+
+        audio_status = BSP_AUDIO_IN_Init(0, &audio_init);
+
+        if (audio_status == BSP_ERROR_NONE) {
+            selected_device = devices[i];
+            snprintf(line, sizeof(line), "MIC init: OK device=%s\r\n", device_names[i]);
+            uart_print(line);
+            break;
+        }
+
+        snprintf(line, sizeof(line), "MIC init: FAIL device=%s status=%ld\r\n", device_names[i], (long)audio_status);
+        uart_print(line);
+    }
+
+    if (audio_status != BSP_ERROR_NONE) {
+        Error_Handler();
+    }
+
+    audio_status = BSP_AUDIO_IN_Record(0, (uint8_t *)audio_buffer, sizeof(audio_buffer));
+
+    if (audio_status != BSP_ERROR_NONE) {
+        char line[64];
+        snprintf(line, sizeof(line), "MIC record: FAIL status=%ld\r\n", (long)audio_status);
+        uart_print(line);
+        Error_Handler();
+    }
+
+    uart_print("MIC record: START\r\n");
+
+    uint32_t idle_loops = 0;
+
+    while (reports < 20U) {
+        idle_loops++;
+
+        if ((idle_loops % 1000000U) == 0U) {
+            char line[96];
+            snprintf(line,
+                     sizeof(line),
+                     "MIC wait irq=%lu half=%u full=%u err=%u reports=%lu\r\n",
+                     (unsigned long)audio_irq_count,
+                     audio_half_ready,
+                     audio_full_ready,
+                     audio_error_seen,
+                     (unsigned long)reports);
+            uart_print(line);
+        }
+
+        if (audio_error_seen != 0U) {
+            uart_print("MIC error callback\r\n");
+            Error_Handler();
+        }
+
+        if (audio_half_ready != 0U) {
+            audio_half_ready = 0;
+            audio_report_block(&audio_buffer[0], AUDIO_BUFFER_SAMPLES / 2U, "half");
+            reports++;
+        }
+
+        if (audio_full_ready != 0U) {
+            audio_full_ready = 0;
+            audio_report_block(&audio_buffer[AUDIO_BUFFER_SAMPLES / 2U], AUDIO_BUFFER_SAMPLES / 2U, "full");
+            reports++;
+        }
+    }
+
+    BSP_AUDIO_IN_Stop(0);
+    uart_print("MIC smoke test: DONE\r\n");
 }
 
 static void run_kernel_self_test(void) {
@@ -230,6 +401,7 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
   run_kernel_self_test();
+  run_microphone_smoke_test();
   /* USER CODE END 2 */
 
   /* Infinite loop */

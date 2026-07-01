@@ -51,8 +51,18 @@ uint32_t sad_u8(size_t n, const uint8_t *a, const uint8_t *b)
 
 void axpy_u8_unrolled(size_t n, uint8_t a, const uint8_t *x, uint8_t *y)
 {
-    /* TODO (Task 1.3): manual loop unrolling, factor 4, handle the remainder. */
-    axpy_u8(n, a, x, y);
+    size_t i = 0;
+
+    for (; i + 4u <= n; i += 4u) {
+        y[i + 0u] = (uint8_t)(a * x[i + 0u] + y[i + 0u]);
+        y[i + 1u] = (uint8_t)(a * x[i + 1u] + y[i + 1u]);
+        y[i + 2u] = (uint8_t)(a * x[i + 2u] + y[i + 2u]);
+        y[i + 3u] = (uint8_t)(a * x[i + 3u] + y[i + 3u]);
+    }
+
+    for (; i < n; ++i) {
+        y[i] = (uint8_t)(a * x[i] + y[i]);
+    }
 }
 
 void conv1d_i16_valid_opt(const int16_t *x,

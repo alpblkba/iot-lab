@@ -19,6 +19,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "b_u585i_iot02a_audio.h"
+extern volatile uint32_t audio_irq_count;
 #include "stm32u5xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -206,13 +208,8 @@ void SysTick_Handler(void)
   */
 void GPDMA1_Channel0_IRQHandler(void)
 {
-  /* USER CODE BEGIN GPDMA1_Channel0_IRQn 0 */
-
-  /* USER CODE END GPDMA1_Channel0_IRQn 0 */
-  HAL_DMA_IRQHandler(&handle_GPDMA1_Channel0);
-  /* USER CODE BEGIN GPDMA1_Channel0_IRQn 1 */
-
-  /* USER CODE END GPDMA1_Channel0_IRQn 1 */
+  audio_irq_count++;
+  BSP_AUDIO_IN_IRQHandler(0, AUDIO_IN_DEVICE_DIGITAL_MIC2);
 }
 
 /**
@@ -230,5 +227,11 @@ void GPDMA1_Channel1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+
+void GPDMA1_Channel6_IRQHandler(void)
+{
+  BSP_AUDIO_IN_IRQHandler(0, AUDIO_IN_DEVICE_DIGITAL_MIC1);
+}
 
 /* USER CODE END 1 */
