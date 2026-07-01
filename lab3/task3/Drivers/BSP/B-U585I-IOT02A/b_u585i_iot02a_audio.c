@@ -76,15 +76,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "b_u585i_iot02a_audio.h"
 
-#include <string.h>
-
-extern UART_HandleTypeDef huart1;
-
-static void BSP_AUDIO_DebugPrint(const char *msg)
-{
-  HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
-}
-
 
 /** @addtogroup BSP
   * @{
@@ -228,28 +219,22 @@ int32_t BSP_AUDIO_IN_Init(uint32_t Instance, BSP_AUDIO_Init_t *AudioInit)
         ((Audio_In_Ctx[Instance].Device == AUDIO_IN_DEVICE_DIGITAL_MIC1) ? ADF1_Filter0 : MDF1_Filter0);
     }
     /* Configure MDF clock */
-    BSP_AUDIO_DebugPrint("BSP audio: clock0\r\n");
     if (MX_MDF1_ClockConfig(&haudio_in_mdf_filter[0], AudioInit->SampleRate) != HAL_OK)
     {
-      BSP_AUDIO_DebugPrint("BSP audio: clock0 FAIL\r\n");
       status = BSP_ERROR_CLOCK_FAILURE;
     }
     else
     {
-      BSP_AUDIO_DebugPrint("BSP audio: clock0 OK\r\n");
     }
 
     if (status == BSP_ERROR_NONE)
     {
-      BSP_AUDIO_DebugPrint("BSP audio: clock1\r\n");
       if (MX_MDF1_ClockConfig(&haudio_in_mdf_filter[1], AudioInit->SampleRate) != HAL_OK)
       {
-        BSP_AUDIO_DebugPrint("BSP audio: clock1 FAIL\r\n");
         status = BSP_ERROR_CLOCK_FAILURE;
       }
       else
       {
-        BSP_AUDIO_DebugPrint("BSP audio: clock1 OK\r\n");
       }
     }
 
@@ -258,15 +243,11 @@ int32_t BSP_AUDIO_IN_Init(uint32_t Instance, BSP_AUDIO_Init_t *AudioInit)
 #if (USE_HAL_MDF_REGISTER_CALLBACKS == 0)
       if ((Audio_In_Ctx[Instance].Device & AUDIO_IN_DEVICE_DIGITAL_MIC1) == AUDIO_IN_DEVICE_DIGITAL_MIC1)
       {
-        BSP_AUDIO_DebugPrint("BSP audio: msp0\r\n");
         MDF_BlockMspInit(&haudio_in_mdf_filter[0]);
-        BSP_AUDIO_DebugPrint("BSP audio: msp0 done\r\n");
       }
       if ((Audio_In_Ctx[Instance].Device & AUDIO_IN_DEVICE_DIGITAL_MIC2) == AUDIO_IN_DEVICE_DIGITAL_MIC2)
       {
-        BSP_AUDIO_DebugPrint("BSP audio: msp1\r\n");
         MDF_BlockMspInit(&haudio_in_mdf_filter[1]);
-        BSP_AUDIO_DebugPrint("BSP audio: msp1 done\r\n");
       }
 #else
       /* Register the MDF MSP Callbacks */
@@ -284,15 +265,12 @@ int32_t BSP_AUDIO_IN_Init(uint32_t Instance, BSP_AUDIO_Init_t *AudioInit)
         MX_MDF_InitTypeDef mxMdfInit;
         if ((Audio_In_Ctx[Instance].Device & AUDIO_IN_DEVICE_DIGITAL_MIC1) == AUDIO_IN_DEVICE_DIGITAL_MIC1)
         {
-          BSP_AUDIO_DebugPrint("BSP audio: init0\r\n");
           if (MX_MDF1_Init(&haudio_in_mdf_filter[0], &mxMdfInit) != HAL_OK)
           {
-            BSP_AUDIO_DebugPrint("BSP audio: init0 FAIL\r\n");
             status = BSP_ERROR_PERIPH_FAILURE;
           }
           else
           {
-            BSP_AUDIO_DebugPrint("BSP audio: init0 OK\r\n");
           }
 
 #if (USE_HAL_MDF_REGISTER_CALLBACKS == 1)
@@ -323,15 +301,12 @@ int32_t BSP_AUDIO_IN_Init(uint32_t Instance, BSP_AUDIO_Init_t *AudioInit)
 
         if ((Audio_In_Ctx[Instance].Device & AUDIO_IN_DEVICE_DIGITAL_MIC2) == AUDIO_IN_DEVICE_DIGITAL_MIC2)
         {
-          BSP_AUDIO_DebugPrint("BSP audio: init1\r\n");
           if (MX_MDF1_Init(&haudio_in_mdf_filter[1], &mxMdfInit) != HAL_OK)
           {
-            BSP_AUDIO_DebugPrint("BSP audio: init1 FAIL\r\n");
             status = BSP_ERROR_PERIPH_FAILURE;
           }
           else
           {
-            BSP_AUDIO_DebugPrint("BSP audio: init1 OK\r\n");
           }
 
 #if (USE_HAL_MDF_REGISTER_CALLBACKS == 1)
