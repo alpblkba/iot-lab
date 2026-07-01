@@ -192,7 +192,7 @@ static void audio_report_rms(const int16_t *samples, uint32_t count, const char 
     char line[80];
     uint32_t rms = compute_centered_rms(samples, count);
 
-    snprintf(line, sizeof(line), "MIC %s centered_rms=%lu\\r\\n", tag, (unsigned long)rms);
+    snprintf(line, sizeof(line), "MIC %s centered_rms=%lu\r\n", tag, (unsigned long)rms);
     uart_print(line);
 }
 
@@ -207,14 +207,14 @@ static void start_microphone_capture(void)
     audio_init.ChannelsNbr = 1U;
     audio_init.Volume = 100U;
 
-    uart_print("Task3 microphone DMA RMS demo\\r\\n");
-    uart_print("MIC device: DIGITAL_MIC2\\r\\n");
+    uart_print("Task3 microphone DMA RMS demo\r\n");
+    uart_print("MIC device: DIGITAL_MIC2\r\n");
 
     audio_status = BSP_AUDIO_IN_Init(0, &audio_init);
 
     if (audio_status != BSP_ERROR_NONE) {
         char line[64];
-        snprintf(line, sizeof(line), "MIC init: FAIL status=%ld\\r\\n", (long)audio_status);
+        snprintf(line, sizeof(line), "MIC init: FAIL status=%ld\r\n", (long)audio_status);
         uart_print(line);
         Error_Handler();
     }
@@ -223,19 +223,19 @@ static void start_microphone_capture(void)
 
     if (audio_status != BSP_ERROR_NONE) {
         char line[64];
-        snprintf(line, sizeof(line), "MIC record: FAIL status=%ld\\r\\n", (long)audio_status);
+        snprintf(line, sizeof(line), "MIC record: FAIL status=%ld\r\n", (long)audio_status);
         uart_print(line);
         Error_Handler();
     }
 
-    uart_print("MIC record: START\\r\\n");
+    uart_print("MIC record: START\r\n");
 }
 
 static void process_microphone_audio(void)
 {
     if (audio_error_seen != 0U) {
         audio_error_seen = 0U;
-        uart_print("MIC error callback\\r\\n");
+        uart_print("MIC error callback\r\n");
     }
 
     if (audio_half_ready != 0U) {
