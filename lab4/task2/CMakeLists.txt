@@ -97,3 +97,14 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ../../external/CMSIS-DSP/Source/CommonTables/arm_common_tables.c
     ../../external/CMSIS-DSP/Source/CommonTables/arm_const_structs.c
 )
+
+# User added for Lab 4 Task 2 mode selection
+set(LAB4_TASK2_MODE "FFT" CACHE STRING "Lab 4 Task 2 mode: DFT or FFT")
+
+if(LAB4_TASK2_MODE STREQUAL "FFT")
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE LAB4_TASK2_MODE_FFT=1)
+elseif(LAB4_TASK2_MODE STREQUAL "DFT")
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE LAB4_TASK2_MODE_FFT=0)
+else()
+    message(FATAL_ERROR "LAB4_TASK2_MODE must be DFT or FFT")
+endif()

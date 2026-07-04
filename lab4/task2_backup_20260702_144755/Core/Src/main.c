@@ -21,14 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <math.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
-#include "b_u585i_iot02a_audio.h"
-#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,6 +61,12 @@ DMA_HandleTypeDef handle_GPDMA1_Channel0;
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
+uint8_t pRxBuff[10];
+uint8_t pTxBuff[] = "Count: 0\r\n";
+uint8_t u8Inc = '0';
+
+volatile uint8_t uart_tx_ready = 1;
+volatile uint8_t uart_rx_ready = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,274 +91,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define AUDIO_BLOCK_SAMPLES 512U
-#define AUDIO_DMA_SAMPLES   (2U * AUDIO_BLOCK_SAMPLES)
-#define AUDIO_FS_HZ         16000U
-#define CPU_HZ              160000000U
-#define DFT_BINS            (AUDIO_BLOCK_SAMPLES / 2U)
 
-#define BLOCK_BUDGET_CYCLES ((CPU_HZ / AUDIO_FS_HZ) * AUDIO_BLOCK_SAMPLES)
-
-static int16_t audio_buffer[AUDIO_DMA_SAMPLES];
-
-static float audio_f32[AUDIO_BLOCK_SAMPLES];
-static float dft_mag[DFT_BINS];
-
-static arm_rfft_fast_instance_f32 rfft;
-static float fft_out[AUDIO_BLOCK_SAMPLES];
-static float fft_mag[DFT_BINS];
-
-static volatile uint8_t block_ready = 0;
-static volatile uint8_t ready_half = 0;
-static volatile uint8_t processing_done = 1;
-
-static volatile uint32_t overrun_count = 0;
-static volatile uint32_t audio_error_count = 0;
-static volatile uint32_t block_count = 0;
-
-static char uart_line[192];
-
-static void uart_print(const char *s)
-{
-    HAL_UART_Transmit(&huart1, (uint8_t *)s, (uint16_t)strlen(s), HAL_MAX_DELAY);
-}
-
-static void dwt_init(void)
-{
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CYCCNT = 0;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-}
-
-static uint32_t dwt_now(void)
-{
-    __DSB();
-    __ISB();
-    return DWT->CYCCNT;
-}
-
-static void fft_init_or_die(void)
-{
-    arm_status st = arm_rfft_fast_init_f32(&rfft, AUDIO_BLOCK_SAMPLES);
-
-    if (st != ARM_MATH_SUCCESS) {
-        uart_print("FFT init: FAIL\r\n");
-        Error_Handler();
-    }
-
-    uart_print("FFT init: OK\r\n");
-}
-
-void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance)
-{
-    (void)Instance;
-
-    if (processing_done == 0U) {
-        overrun_count++;
-    }
-
-    processing_done = 0U;
-    ready_half = 0U;
-    block_ready = 1U;
-}
-
-void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance)
-{
-    (void)Instance;
-
-    if (processing_done == 0U) {
-        overrun_count++;
-    }
-
-    processing_done = 0U;
-    ready_half = 1U;
-    block_ready = 1U;
-}
-
-void BSP_AUDIO_IN_Error_CallBack(uint32_t Instance)
-{
-    (void)Instance;
-    audio_error_count++;
-}
-
-static void copy_audio_block_to_float(uint8_t half)
-{
-    const uint32_t offset = half ? AUDIO_BLOCK_SAMPLES : 0U;
-    const int16_t *src = &audio_buffer[offset];
-
-    float mean = 0.0f;
-
-    for (uint32_t i = 0; i < AUDIO_BLOCK_SAMPLES; ++i) {
-        mean += (float)src[i];
-    }
-
-    mean /= (float)AUDIO_BLOCK_SAMPLES;
-
-    for (uint32_t i = 0; i < AUDIO_BLOCK_SAMPLES; ++i) {
-        audio_f32[i] = ((float)src[i] - mean) / 32768.0f;
-    }
-}
-
-static void dft_naive(const float *in, float *mag)
-{
-    const float two_pi = 6.2831853071795864769f;
-
-    for (uint32_t k = 0; k < DFT_BINS; ++k) {
-        float re = 0.0f;
-        float im = 0.0f;
-
-        for (uint32_t n = 0; n < AUDIO_BLOCK_SAMPLES; ++n) {
-            float theta = two_pi * (float)k * (float)n / (float)AUDIO_BLOCK_SAMPLES;
-            re += in[n] * cosf(theta);
-            im -= in[n] * sinf(theta);
-        }
-
-        mag[k] = sqrtf((re * re) + (im * im));
-    }
-}
-
-static uint32_t find_peak_bin(const float *mag)
-{
-    uint32_t best_bin = 1U;
-    float best_mag = mag[1];
-
-    for (uint32_t k = 2U; k < DFT_BINS; ++k) {
-        if (mag[k] > best_mag) {
-            best_mag = mag[k];
-            best_bin = k;
-        }
-    }
-
-    return best_bin;
-}
-
-static void process_audio_block_dft(void)
-{
-    uint8_t half = ready_half;
-
-    copy_audio_block_to_float(half);
-
-    uint32_t t0 = dwt_now();
-    dft_naive(audio_f32, dft_mag);
-    uint32_t cycles = dwt_now() - t0;
-
-    uint32_t peak_bin = find_peak_bin(dft_mag);
-    uint32_t peak_hz = (peak_bin * AUDIO_FS_HZ) / AUDIO_BLOCK_SAMPLES;
-
-    uint64_t load_x100 = ((uint64_t)cycles * 10000ULL) / (uint64_t)BLOCK_BUDGET_CYCLES;
-    uint64_t time_us = ((uint64_t)cycles * 1000000ULL) / (uint64_t)CPU_HZ;
-
-    snprintf(uart_line,
-             sizeof(uart_line),
-             "mode=DFT block=%lu half=%lu cycles=%lu time=%lu.%03lu ms load=%lu.%02lu%% overrun=%lu errors=%lu peak=%luHz\r\n",
-             (unsigned long)block_count,
-             (unsigned long)half,
-             (unsigned long)cycles,
-             (unsigned long)(time_us / 1000ULL),
-             (unsigned long)(time_us % 1000ULL),
-             (unsigned long)(load_x100 / 100ULL),
-             (unsigned long)(load_x100 % 100ULL),
-             (unsigned long)overrun_count,
-             (unsigned long)audio_error_count,
-             (unsigned long)peak_hz);
-
-    uart_print(uart_line);
-
-    block_count++;
-    processing_done = 1U;
-}
-
-static void rfft_fast_mag_512(const float *packed, float *mag)
-{
-    mag[0] = fabsf(packed[0]);
-
-    for (uint32_t k = 1U; k < DFT_BINS; ++k) {
-        float re = packed[2U * k];
-        float im = packed[(2U * k) + 1U];
-        mag[k] = sqrtf((re * re) + (im * im));
-    }
-}
-
-static void process_audio_block_fft(void)
-{
-    uint8_t half = ready_half;
-
-    copy_audio_block_to_float(half);
-
-    uint32_t t0 = dwt_now();
-    arm_rfft_fast_f32(&rfft, audio_f32, fft_out, 0);
-    rfft_fast_mag_512(fft_out, fft_mag);
-    uint32_t cycles = dwt_now() - t0;
-
-    uint32_t peak_bin = find_peak_bin(fft_mag);
-    uint32_t peak_hz = (peak_bin * AUDIO_FS_HZ) / AUDIO_BLOCK_SAMPLES;
-
-    uint64_t load_x100 = ((uint64_t)cycles * 10000ULL) / (uint64_t)BLOCK_BUDGET_CYCLES;
-    uint64_t time_us = ((uint64_t)cycles * 1000000ULL) / (uint64_t)CPU_HZ;
-
-    snprintf(uart_line,
-             sizeof(uart_line),
-             "mode=FFT block=%lu half=%lu cycles=%lu time=%lu.%03lu ms load=%lu.%02lu%% overrun=%lu errors=%lu peak=%luHz\r\n",
-             (unsigned long)block_count,
-             (unsigned long)half,
-             (unsigned long)cycles,
-             (unsigned long)(time_us / 1000ULL),
-             (unsigned long)(time_us % 1000ULL),
-             (unsigned long)(load_x100 / 100ULL),
-             (unsigned long)(load_x100 % 100ULL),
-             (unsigned long)overrun_count,
-             (unsigned long)audio_error_count,
-             (unsigned long)peak_hz);
-
-    uart_print(uart_line);
-
-    block_count++;
-    processing_done = 1U;
-}
-
-static void start_microphone_capture(void)
-{
-    BSP_AUDIO_Init_t audio_init = {0};
-    int32_t audio_status;
-
-    audio_init.Device = AUDIO_IN_DEVICE_DIGITAL_MIC2;
-    audio_init.SampleRate = AUDIO_FREQUENCY_16K;
-    audio_init.BitsPerSample = AUDIO_RESOLUTION_16B;
-    audio_init.ChannelsNbr = 1U;
-    audio_init.Volume = 100U;
-
-    #if LAB4_TASK2_MODE_FFT
-    uart_print("\r\n=== IoT Lab 04 Task 02: CMSIS-DSP FFT ===\r\n");
-#else
-    uart_print("\r\n=== IoT Lab 04 Task 02: Naive DFT ===\r\n");
-#endif
-
-    snprintf(uart_line,
-             sizeof(uart_line),
-             "fs=%luHz block=%lu samples budget=%lu cycles\r\n",
-             (unsigned long)AUDIO_FS_HZ,
-             (unsigned long)AUDIO_BLOCK_SAMPLES,
-             (unsigned long)BLOCK_BUDGET_CYCLES);
-    uart_print(uart_line);
-
-    audio_status = BSP_AUDIO_IN_Init(0, &audio_init);
-
-    if (audio_status != BSP_ERROR_NONE) {
-        snprintf(uart_line, sizeof(uart_line), "MIC init: FAIL status=%ld\r\n", (long)audio_status);
-        uart_print(uart_line);
-        Error_Handler();
-    }
-
-    audio_status = BSP_AUDIO_IN_Record(0, (uint8_t *)audio_buffer, sizeof(audio_buffer));
-
-    if (audio_status != BSP_ERROR_NONE) {
-        snprintf(uart_line, sizeof(uart_line), "MIC record: FAIL status=%ld\r\n", (long)audio_status);
-        uart_print(uart_line);
-        Error_Handler();
-    }
-
-    uart_print("MIC record: START\r\n");
-}
 /* USER CODE END 0 */
 
 /**
@@ -407,29 +139,36 @@ int main(void)
   MX_UCPD1_Init();
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
-  dwt_init();
-  fft_init_or_die();
-  start_microphone_capture();
-  /* USER CODE END 2 */
+  HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+  if (HAL_UART_Receive_DMA(&huart1, pRxBuff, sizeof(pRxBuff)) != HAL_OK) {
+      Error_Handler();
+  }
+/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+  while (1) {
+    /* USER CODE BEGIN 3 */
+    if (uart_tx_ready != 0) {
+        pTxBuff[7] = u8Inc;
 
-    if (block_ready != 0U) {
-        block_ready = 0U;
-        #if LAB4_TASK2_MODE_FFT
-        process_audio_block_fft();
-#else
-        process_audio_block_dft();
-#endif
+        uart_tx_ready = 0;
+        if (HAL_UART_Transmit_DMA(&huart1, pTxBuff, sizeof(pTxBuff) - 1) == HAL_OK) {
+            u8Inc++;
+            if (u8Inc > '9') {
+                u8Inc = '0';
+            }
+        } else {
+            uart_tx_ready = 1;
+            HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+        }
     }
 
-    /* USER CODE BEGIN 3 */
+    HAL_Delay(1000);
+    /* USER CODE END 3 */
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -1193,7 +932,19 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+        uart_tx_ready = 1;
+        HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+    }
+}
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+        uart_rx_ready = 1;
+        HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    }
+}
 /* USER CODE END 4 */
 
 /**

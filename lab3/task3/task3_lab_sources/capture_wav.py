@@ -7,7 +7,7 @@ import wave
 import serial
 
 
-PORT = "/dev/ttyACM0"
+PORT = "/dev/cu.usbmodem21403"
 BAUD_RATE = 115200
 OUTPUT_PATH = "capture.wav"
 CAPTURE_TIMEOUT_S = 20.0
